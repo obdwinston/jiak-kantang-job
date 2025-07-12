@@ -1,0 +1,11 @@
+python-dotenv
+requests
+beautifulsoup4
+supabase
+langgraph
+langchain-openai
+langchain-core
+pydantic
+typing-extensions
+bert-score
+rouge
