@@ -30,10 +30,14 @@ class Translation(BaseModel):
     vocabulary: list[dict]
 
 
+def merge(left: dict, right: dict) -> dict:
+    return {**left, **right}
+
+
 class State(TypedDict):
     content: str
     summary: str
-    scores: dict
+    scores: Annotated[dict, merge]
     translations: Annotated[list[Translation], add]
 
 
@@ -99,7 +103,7 @@ def summarise_article(state: State) -> dict:
     print("  Summarising in English...")
 
     prompt = f"""
-Summarise the following news article in {N_SENTENCES} English sentences.
+Summarise the following news article in {N_SENTENCES} English sentences. The summary should be coherent and grammatically correct (e.g. remove ALL double spaces).
 
 Article: {state["content"]}
 
@@ -122,7 +126,7 @@ def evaluate_summary(state: State) -> dict:
         [state["summary"]],
         [state["content"]],
         lang="en",
-        model_type="distilbert-base-uncased",
+        model_type="bert-base-uncased",
     )
     bert_p = P.item()
     bert_r = R.item()
@@ -180,7 +184,7 @@ def translate_article(lang: str):
         print(f"  Translating to {lang}...")
 
         translate_prompt = f"""
-Translate the following summary into {lang} and return ONLY the translated summary.
+Translate the following summary SENTENCE-BY-SENTENCE into {lang} and return ONLY the translated summary. The translated summary should be coherent and grammatically correct. Each sentence in the translated summary should be separated by ONLY ONE space.
 
 Summary: {state["summary"]}
 
@@ -278,6 +282,7 @@ def verify_outputs(outputs: list[dict]) -> None:
                     for word in vocab_dict
                     if re.search(r"\b" + re.escape(word.lower()) + r"\b", text)
                 )
+
             print(f"  {lang.title()}: {vocab_found}/{len(vocab_dict)} vocabulary")
 
 
